@@ -167,7 +167,7 @@ data_combined_using_nhst |>
   count(design) |>
   mutate(percent = janitor::round_half_up(n/sum(n), 2)) |>
   kable() |>
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+  kable_classic(full_width = FALSE)
 
 ```
 
@@ -221,7 +221,7 @@ data_table_1 |>
          starts_with("'")) |>
          #starts_with("NF")) |>
   kable() |>
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+  kable_classic(full_width = FALSE)
 
 ```
 
@@ -305,7 +305,7 @@ data_table_2 |>
          starts_with("'")) |>
          #starts_with("NF")) |>
   kable() |>
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+  kable_classic(full_width = FALSE)
 
 ```
 
@@ -320,7 +320,7 @@ data_figure_2 <- data_table_2_filtered |>
   group_by(field, year) |>
   summarize(median_n_per_cell = janitor::round_half_up(median(N_per_cell, na.rm = TRUE), 0)) |>
   ungroup() |>
-  mutate(field = fct_rev(fct_relevel(field, levels(data_table_2$field))))
+  mutate(field = fct_rev(fct_relevel(field, levels(data_table_1$field))))
 
 # plot 
 ggplot(data_figure_2, aes(as.factor(year), median_n_per_cell, group = field)) +
@@ -390,7 +390,7 @@ data_table_3 <- data_table_3_long |>
 # print table
 data_table_3 |>
   kable() |>
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+  kable_classic(full_width = FALSE)
 
 ```
 
@@ -449,7 +449,7 @@ data_table_4 <- bind_rows(
 data_table_4 |>
   kable(col.names = c("field", "$P(H_0)$ = 0.5", "$P(H_0)$ = 0.8", "$P(H_0)$ = 0.5", "$P(H_0)$ = 0.8"),
         escape = FALSE) |>
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE) %>%
+  kable_classic(full_width = FALSE) %>%
   add_header_above(c(" " = 1, "2011" = 2, "2019" = 2))
 
 ```
@@ -467,11 +467,11 @@ Results represent Median N (k studies)
 ```{r}
 
 # Filter out non-social studies published in psych science
-data_table_5_filtered <- data_combined_using_nhst |>
+data_table_5_filtered <- data_combined |>
   filter(
     (design == "between" &
       ((journal == "PS:S" & (social_ps == 1 | is.na(social_ps))) | journal != "PS:S")) |
-      (journal == "IRAP" & design %in% c("between", "mixed"))
+      (journal == "IRAP" & design %in% c("between", "mixed") & used_inferential_statistics == TRUE & reported_n == TRUE)
   )
 
 # calculate median N for each field and year
@@ -514,7 +514,7 @@ data_table_5 |>
          starts_with("'")) |>
          #starts_with("NF")) |>
   kable() |>
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+  kable_classic(full_width = FALSE)
 
 ```
 
@@ -574,7 +574,7 @@ data_table_6 <- data_table_6_long |>
 # print table
 data_table_6 |>
   kable() |>
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+  kable_classic(full_width = FALSE)
 
 ```
 
@@ -635,7 +635,7 @@ data_table_7 <- bind_rows(
 data_table_7 |>
   kable(col.names = c("field", "$P(H_0)$ = 0.5", "$P(H_0)$ = 0.8", "$P(H_0)$ = 0.5", "$P(H_0)$ = 0.8"),
         escape = FALSE) |>
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE) %>%
+  kable_classic(full_width = FALSE) %>%
   add_header_above(c(" " = 1, "2011" = 2, "2019" = 2))
 
 ```
