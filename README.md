@@ -2,7 +2,5 @@
 
 
 
-OSF project: https://osf.io/v3twe/
-
-Systematic review of published IRAP studies from https://osf.io/tna8s/ 
+OSF project: XXXX
 
