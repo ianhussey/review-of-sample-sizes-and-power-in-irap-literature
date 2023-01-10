@@ -39,8 +39,6 @@ library(scales)
 
 # Data
 
-Fraley's commented out code for data wrangling, below, was run once to create data_combined.csv. All future runs simply loaded data_combined.csv and ran analyses on it.
-
 ```{r}
 
 data_combined <- read_csv("../data/processed/data_fraley_and_irap.csv") |>
@@ -50,35 +48,84 @@ data_combined <- read_csv("../data/processed/data_fraley_and_irap.csv") |>
          field = ifelse(journal == "IRAP", "IRAP research", "Social Psychology"),
          design = case_when(design == "b" ~ "between",
                             design == "w" ~ "within",
-                            design == "m" ~ "mixed"))
+                            design == "m" ~ "mixed"),
+         reported_n = !is.na(N))
 
 ```
 
-# IRAP studies sample size
+# Prevalence of NHST in the IRAP literature
 
-## Full sample descriptives
+Using the full sample
 
 ```{r}
 
-data_irap_n <- 
-  data_combined |>
-  filter(journal == "IRAP") |>
-  drop_na(N)
+# subset data
+data_irap_n <- data_combined |>
+  filter(journal == "IRAP") 
 
+# calculate k articles
 k_articles <- data_irap_n |>
   distinct(key) |>
   count() |>
   pull(n)
 
+# calculate k studies
 k_studies <- data_irap_n |>
   count()  |>
   pull(n)
 
-MAP <- bayestestR::map_estimate(data_irap_n$N) |>
+# table
+data_irap_n |>         
+  summarize(`Total articles` = k_articles,
+            `Total studies` = k_studies) |>
+  kable() |>
+  kable_classic(full_width = FALSE)
+
+# table by use of inferential stats
+data_irap_n |>   
+  count(`Reported N` = reported_n, 
+        `Studies using inferential statistics` = used_inferential_statistics) |>
+  mutate(percent = janitor::round_half_up(n/sum(n)*100, 1)) |>
+  kable() |>
+  kable_classic(full_width = FALSE)
+
+```
+
+# IRAP studies sample size
+
+All analyses from here are based on IRAP publications that employed NHST. 
+
+## Descriptives
+
+```{r}
+
+# subset data. reused again further below
+data_combined_using_nhst <- data_combined |>
+  filter(used_inferential_statistics == TRUE & 
+           reported_n == TRUE)
+
+# subset further
+data_irap_n_using_nhst <- data_combined_using_nhst |>
+  filter(journal == "IRAP") 
+
+# count articles
+k_articles <- data_irap_n_using_nhst |>
+  distinct(key) |>
+  count() |>
+  pull(n)
+
+# count studies
+k_studies <- data_irap_n_using_nhst |>
+  count()  |>
+  pull(n)
+
+# calculate maximum a posteriori estimate (mode of a continuous variable) 
+MAP <- bayestestR::map_estimate(data_irap_n_using_nhst$N) |>
   janitor::round_half_up(1) |>
   as.numeric()
 
-data_irap_n |>         
+# combine table
+data_irap_n_using_nhst |>         
   summarize(`Total articles` = k_articles,
             `Total studies` = k_studies,
             `Total N` = sum(N),
@@ -98,7 +145,8 @@ data_irap_n |>
   kable() |>
   kable_classic(full_width = FALSE)
 
-ggplot(data_irap_n, aes(N)) +
+# plot
+ggplot(data_irap_n_using_nhst, aes(N)) +
   geom_histogram(binwidth = 10) +
   theme_classic() +
   ylab("Number of studies") +
@@ -113,7 +161,7 @@ Note that IRAP publications with mixed designs also report results from between 
 
 ```{r}
 
-data_combined |>
+data_combined_using_nhst |>
   filter(!is.na(N) & journal == "IRAP") |>
   distinct(title, design) |>
   count(design) |>
@@ -129,11 +177,8 @@ data_combined |>
 
 ```{r}
 
-data_irap_n_per_study <- data_combined |>
-  filter(field == "IRAP research")
-
-# Filter out non-social studies published in psych science
-data_table_1_filtered <- data_irap_n_per_study |>
+# subset irap data 
+data_table_1_filtered <- data_combined_using_nhst |>
   filter(field == "IRAP research")
 
 # calculate median N for each field and year
@@ -187,8 +232,7 @@ data_table_1 |>
 # Filter out non-social studies published in psych science
 # calculate median Ns
 # order field column by same used in Table 1
-data_figure_1 <- data_irap_n_per_study |>
-  filter(journal == "IRAP") |>
+data_figure_1 <- data_table_1_filtered |>
   group_by(field, year) |>
   summarize(median_n = janitor::round_half_up(median(N, na.rm = TRUE), 0)) |>
   ungroup() |>
@@ -217,7 +261,7 @@ Results represent Median N (k studies)
 ```{r}
 
 # Filter out non-social studies published in psych science
-data_table_2_filtered <- data_combined |>
+data_table_2_filtered <- data_combined_using_nhst |>
   filter(journal == "IRAP" & design %in% c("between", "mixed")) |>
   mutate(N_per_cell = N/n_groups_between)
 
@@ -290,10 +334,13 @@ ggplot(data_figure_2, aes(as.factor(year), median_n_per_cell, group = field)) +
 
 ```
 
-#### Combined
+#### Combined plot
+
+Probably most useful for publication
 
 ```{r}
 
+# combine data
 bind_rows(
   data_figure_1 |>
     mutate(type = "Participants per study"),
@@ -420,7 +467,7 @@ Results represent Median N (k studies)
 ```{r}
 
 # Filter out non-social studies published in psych science
-data_table_5_filtered <- data_combined |>
+data_table_5_filtered <- data_combined_using_nhst |>
   filter(
     (design == "between" &
       ((journal == "PS:S" & (social_ps == 1 | is.na(social_ps))) | journal != "PS:S")) |
