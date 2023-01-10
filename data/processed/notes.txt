@@ -1,0 +1,1 @@
+"data_irap.csv" trims columns from "../raw/irap systematic review/combined results - manually tidied - updated.csv" and adds the manually extracted information from the original articles (sample size, design, cells, use of NHST).
