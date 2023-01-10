@@ -343,10 +343,10 @@ Probably most useful for publication
 # combine data
 bind_rows(
   data_figure_1 |>
-    mutate(type = "Participants per study"),
+    mutate(type = "Participants per study (all studies)"),
   data_figure_2 |>
     rename(median_n = median_n_per_cell) |>
-    mutate(type = "Participants per cell")
+    mutate(type = "Participants per cell (between-subjects and mixed designs)")
 ) |>
 ggplot(aes(as.factor(year), median_n, group = type, color = type)) +
   #geom_smooth(method = "lm") +
@@ -357,7 +357,8 @@ ggplot(aes(as.factor(year), median_n, group = type, color = type)) +
   theme_classic() +
   ylab("Median sample size (N)") +
   xlab("Year") +
-  labs(colour = "")
+  labs(colour = "") +
+  theme(legend.position = "bottom")
 
 ```
 
