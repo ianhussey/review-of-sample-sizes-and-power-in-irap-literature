@@ -11,10 +11,6 @@ output:
     toc_float: yes
 ---
 
-# Notes of differences between original Fraley et al. analysis and my reanalysis 
-
-Limited to between-only designs. NB original Fraley et al. (2022) study used only between-groups studies in the tables but plotted all studies. Here I use all between groups social psych studies and both between and mixed IRAP studies, as all mixed IRAP studies also reported between analyses.
-
 ```{r setup, include=FALSE}
 
 knitr::opts_chunk$set(message = FALSE, 
@@ -34,6 +30,11 @@ library(knitr)
 library(kableExtra)
 library(bayestestR)
 library(scales)
+library(sjPlot)
+library(performance)
+
+# create directory for plots
+dir.create("plots")
 
 ```
 
@@ -42,6 +43,7 @@ library(scales)
 ```{r}
 
 data_combined <- read_csv("../data/processed/data_fraley_and_irap.csv") |>
+  # clean names and values
   rename(N = n_participants_after_exclusions,
          design = study_design_ignoring_trial_type_comparisons) |>
   mutate(year = str_replace(publication_year, "20", "'"),
@@ -53,9 +55,9 @@ data_combined <- read_csv("../data/processed/data_fraley_and_irap.csv") |>
 
 ```
 
-# Prevalence of NHST in the IRAP literature
+# Descriptives
 
-Using the full sample
+## IRAP studies
 
 ```{r}
 
@@ -81,6 +83,43 @@ data_irap_n |>
   kable() |>
   kable_classic(full_width = FALSE)
 
+```
+
+## Social and Personality Psychology studies
+
+```{r}
+
+data_combined_comparison <- data_combined |>
+  filter(
+    # filters for social and personality psych studies 
+    # filter out non-social studies published in psych science
+    (design == "between" & ((journal == "PS:S" & (social_ps == 1 | is.na(social_ps))) | journal != "PS:S")) |
+      # filters for irap studies
+      (journal == "IRAP" & design %in% c("between", "mixed") & used_inferential_statistics == TRUE) 
+  ) |>
+  filter(reported_n == TRUE)
+  
+
+data_combined_comparison |>
+  filter(field != "IRAP research") |>
+  count() |>
+  kable() |>
+  kable_classic(full_width = FALSE)
+
+data_combined_comparison |>
+  filter(field != "IRAP research") |>
+  count(journal) |>
+  kable() |>
+  kable_classic(full_width = FALSE)
+
+```
+
+# Prevalence of NHST in the IRAP literature
+
+Using the full sample
+
+```{r}
+
 # table by use of inferential stats
 data_irap_n |>   
   count(`Reported N` = reported_n, 
@@ -91,7 +130,7 @@ data_irap_n |>
 
 ```
 
-# IRAP studies sample size
+# IRAP N per sample
 
 All analyses from here are based on IRAP publications that employed NHST. 
 
@@ -146,12 +185,21 @@ data_irap_n_using_nhst |>
   kable_classic(full_width = FALSE)
 
 # plot
-ggplot(data_irap_n_using_nhst, aes(N)) +
+p_distribution <- 
+  ggplot(data_irap_n_using_nhst, aes(N)) +
   geom_histogram(binwidth = 10) +
   theme_classic() +
-  ylab("Number of studies") +
-  xlab("Sample size after exclusions (N)") +
+  ylab("Count of studies") +
+  xlab("Sample size (N)") +
   scale_x_continuous(breaks = seq(from = 0, to = 250, by = 10))
+
+p_distribution
+
+ggsave("plots/p_distribution.pdf",
+       plot = p_distribution,
+       width = 6,
+       height = 4,
+       units = "in")
 
 ```
 
@@ -162,10 +210,9 @@ Note that IRAP publications with mixed designs also report results from between 
 ```{r}
 
 data_combined_using_nhst |>
-  filter(!is.na(N) & journal == "IRAP") |>
   distinct(title, design) |>
   count(design) |>
-  mutate(percent = janitor::round_half_up(n/sum(n), 2)) |>
+  mutate(percent = janitor::round_half_up(n/sum(n)*100, 1)) |>
   kable() |>
   kable_classic(full_width = FALSE)
 
@@ -240,7 +287,7 @@ data_figure_1 <- data_table_1_filtered |>
 
 # plot 
 ggplot(data_figure_1, aes(as.factor(year), median_n, group = field)) +
-  #geom_smooth(method = "lm") +
+  geom_smooth(method = "lm", alpha = 0.2) +
   geom_line() +
   geom_point() +
   scale_color_viridis_d(option = "plasma", begin = 0.1, end = 0.9) +
@@ -250,11 +297,30 @@ ggplot(data_figure_1, aes(as.factor(year), median_n, group = field)) +
 
 ```
 
-# IRAP studies sample size by cell
+### Estimate change in median N over time
 
-## Change in N-pact over time 
+```{r fig.height=10, fig.width=6}
 
-Results represent Median N (k studies)
+data_for_model_1 <- data_figure_1 |>
+  mutate(year = as.numeric(str_remove(year, "'")),
+         year_recentered = year - 06)
+
+fit_1 <- lm(formula = median_n ~ year_recentered,
+                data = data_for_model_1)
+
+#check_model(fit_1)
+#check_normality(fit_1)
+
+tab_model(fit_1, 
+          string.est = "B",
+          digits = 1,
+          ci.hyphen = ", ")
+
+```
+
+# IRAP N per group
+
+## Median sample size 
 
 ### Table
 
@@ -324,7 +390,7 @@ data_figure_2 <- data_table_2_filtered |>
 
 # plot 
 ggplot(data_figure_2, aes(as.factor(year), median_n_per_cell, group = field)) +
-  #geom_smooth(method = "lm") +
+  geom_smooth(method = "lm") +
   geom_line() +
   geom_point() +
   scale_color_viridis_d(option = "plasma", begin = 0.1, end = 0.9) +
@@ -334,22 +400,49 @@ ggplot(data_figure_2, aes(as.factor(year), median_n_per_cell, group = field)) +
 
 ```
 
+### Estimate change in median N over time
+
+```{r fig.height=10, fig.width=6}
+
+data_for_model_2 <- data_figure_2 |>
+  mutate(year = as.numeric(str_remove(year, "'")),
+         year_recentered = year - 06)
+
+fit_2 <- lm(formula = median_n_per_cell ~ year_recentered,
+                data = data_for_model_2)
+
+#check_model(fit_2)
+#check_normality(fit_2)
+
+tab_model(fit_2, 
+          string.est = "B",
+          digits = 1,
+          ci.hyphen = ", ")
+
+```
+
+Note that data was re-centered so that the intercept is 2006. 
+
+Predictable violations of assumptions due to the skew in sample sizes mean that results must be interpreted in much caution. No p values are presented as no hypotheses were tested: the purpose of the regression was to provide an illustrative estimate of the change in sample size per year.
+
 #### Combined plot
 
 Probably most useful for publication
 
 ```{r}
 
-# combine data
-bind_rows(
-  data_figure_1 |>
-    mutate(type = "Participants per study (all studies)"),
-  data_figure_2 |>
-    rename(median_n = median_n_per_cell) |>
-    mutate(type = "Participants per cell (between-subjects and mixed designs)")
-) |>
-ggplot(aes(as.factor(year), median_n, group = type, color = type)) +
-  #geom_smooth(method = "lm") +
+p_median_n_over_time <- 
+  # combine data
+  bind_rows(
+    data_figure_1 |>
+      mutate(type = "Participants per study (all studies)"),
+    data_figure_2 |>
+      rename(median_n = median_n_per_cell) |>
+      mutate(type = "Participants per group (studies with between-subjects comparisons)")
+  ) |>
+  # plot
+  ggplot(aes(as.factor(year), median_n, group = type, color = type)) +
+  geom_smooth(method = "lm", alpha = 0.2) +
   geom_line() +
   geom_point() +
   scale_color_viridis_d(option = "viridis", begin = 0.3, end = 0.7,
@@ -357,12 +450,21 @@ ggplot(aes(as.factor(year), median_n, group = type, color = type)) +
   theme_classic() +
   ylab("Median sample size (N)") +
   xlab("Year") +
-  labs(colour = "") +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        legend.direction = "vertical",
+        legend.title = element_blank())
+
+p_median_n_over_time
+
+ggsave("plots/p_median_n_over_time.pdf",
+       plot = p_median_n_over_time,
+       width = 6,
+       height = 5,
+       units = "in")
 
 ```
 
-## Estimated Statistical Power 
+## Implied Statistical Power 
 
 to Detect an Average Published Effect Size ($\rho$ = .20) over time
 
@@ -400,10 +502,11 @@ data_table_3 |>
 ```{r}
 
 # order field column by same used in Table 1, then plot
-data_table_3_long |>
+p_power <- data_table_3_long |>
   mutate(field = fct_rev(fct_relevel(field, levels(data_table_1$field)))) |>
   ggplot(aes(as.factor(year), power/100, group = field)) +
   geom_hline(yintercept = .80, linetype = "dotted") +
+  geom_smooth(method = "lm", alpha = 0.2, colour = "black") +
   geom_line() +
   geom_point() +
   scale_color_viridis_d(option = "plasma", begin = 0.1, end = 0.9) +
@@ -414,70 +517,63 @@ data_table_3_long |>
   ylab("Power") +
   xlab("Year")
 
+p_power
+
+ggsave("plots/p_power.pdf",
+       plot = p_power,
+       width = 6,
+       height = 4,
+       units = "in")
+
 ```
 
-## Estimated False-Discovery Rates 
+### Estimate change  in power over time
 
-### Table
+```{r fig.height=10, fig.width=6}
 
-Assuming No p-Hacking or Questionable Research Practices
+data_for_model_3 <- data_table_3_long |>
+  mutate(year = as.numeric(str_remove(year, "'")),
+         year_recentered = year - 6,
+         power = power/100)
 
-Using various assumptions about the P(null = TRUE)
+fit_3 <- lm(formula = power ~ year_recentered,
+            data = data_for_model_3)
+
+#check_model(fit_3)
+#check_normality(fit_3)
+
+tab_model(fit_3, 
+          string.est = "B",
+          digits = 3,
+          ci.hyphen = ", ")
+
+```
+
+Note that data was re-centered so that the intercept is 2006. 
 
 ```{r}
 
-# select a subset power data from first and last year studied, reshape 
-data_power_subset <- data_table_3 |>
-  select(field, `'11`, `'19`) |>
-  pivot_longer(cols = c(`'11`, `'19`), 
-               names_to = "year",
-               values_to = "power") 
+predicted_power_2022 <- (0.142 + 0.009*(2022-2006)) # values taken from regression results table
 
-# duplicate data with different values of $P(H_0)$,
-# calculate False Discovery Rate
-data_table_4 <- bind_rows(
-  mutate(data_power_subset, baserate_null = .50),
-  mutate(data_power_subset, baserate_null = .80)
-) |>
-  mutate(power = power/100,
-         fdr = janitor::round_half_up( (baserate_null*.05) / (  (baserate_null*.05) + ((1-baserate_null)*power)  ), 2)) |>
-  select(field, year, baserate_null, fdr) |>
-  pivot_wider(names_from = c(year, baserate_null),
-              values_from = fdr) |>
-  select(field, `'11_0.5`, `'11_0.8`, `'19_0.5`, `'19_0.8`)
+necessary_increase_to_reach_power_.80 <- .80 - predicted_power_2022
 
-# print table
-data_table_4 |>
-  kable(col.names = c("field", "$P(H_0)$ = 0.5", "$P(H_0)$ = 0.8", "$P(H_0)$ = 0.5", "$P(H_0)$ = 0.8"),
-        escape = FALSE) |>
-  kable_classic(full_width = FALSE) %>%
-  add_header_above(c(" " = 1, "2011" = 2, "2019" = 2))
+years_until_power_.80 <- ceiling(necessary_increase_to_reach_power_.80 / 0.009)
 
 ```
+
+If this rate of increase in median sample sizes is maintained, power of at least .80 (Cohen, 1988) in the median IRAP study would be achieved `r years_until_power_.80` years from now, i.e., by `r 2022 + years_until_power_.80`.
 
 # IRAP vs Social Psychology studies using study N (after exclusions)
 
-More assumptions by using sample size N rather than N per cell. 
-
-## Change in N-pact over time 
-
-Results represent Median N (k studies)
+## Median sample size 
 
 ### Table
 
 ```{r}
 
-# Filter out non-social studies published in psych science
-data_table_5_filtered <- data_combined |>
-  filter(
-    (design == "between" &
-      ((journal == "PS:S" & (social_ps == 1 | is.na(social_ps))) | journal != "PS:S")) |
-      (journal == "IRAP" & design %in% c("between", "mixed") & used_inferential_statistics == TRUE & reported_n == TRUE)
-  )
-
 # calculate median N for each field and year
 # round using typical half-up rule and not R's weird rounding
-data_table_5_n_long <- data_table_5_filtered |>
+data_table_5_n_long <- data_combined_comparison |>
   group_by(field, year) |>
   summarize(median_n = janitor::round_half_up(median(N, na.rm = TRUE), 0)) |>
   ungroup()
@@ -489,7 +585,7 @@ data_table_5_n_aggregate <- data_table_5_n_long |>
   ungroup()
 
 # Calculate k studies used to calculate median ns
-data_table_5_k_long <- data_table_5_filtered |>
+data_table_5_k_long <- data_combined_comparison |>
   count(field, year, name = "k_studies")
 
 # combine Ns and Ks, reshape, and order field column by aggregate median median n 
@@ -526,16 +622,16 @@ data_table_5 |>
 # Filter out non-social studies published in psych science
 # calculate median Ns
 # order field column by same used in Table 1
-data_figure_4 <- data_table_5_filtered |>
+data_figure_4 <- data_combined_comparison |>
   group_by(field, year) |>
   summarize(median_n = janitor::round_half_up(median(N, na.rm = TRUE), 0)) |>
   ungroup() |>
   mutate(field = fct_rev(fct_relevel(field, levels(data_table_1$field))))
 
 # plot 
-ggplot(data_figure_4, aes(as.factor(year), median_n, color = field, group = field)) +
-  #geom_vline(xintercept = "2011", linetype = "dotted") +
-  #geom_smooth(method = "lm", alpha = 0.2) +
+p_median_n_over_time_comparison <- 
+  ggplot(data_figure_4, aes(as.factor(year), median_n, color = field, group = field)) +
+  geom_smooth(method = "lm", alpha = 0.2) +
   geom_line() +
   geom_point() +
   scale_y_continuous(breaks = c(0, 50, 100, 150, 200, 250, 300)) +
@@ -543,11 +639,48 @@ ggplot(data_figure_4, aes(as.factor(year), median_n, color = field, group = fiel
   theme_classic() +
   ylab("Median sample size (N) per study") +
   xlab("Year") +
-  labs(colour = "Field")
+  labs(colour = "Field") +
+  theme(legend.position = "bottom",
+        legend.direction = "vertical",
+        legend.title = element_blank())
+
+p_median_n_over_time_comparison
+
+ggsave("plots/p_median_n_over_time_comparison.pdf",
+       plot = p_median_n_over_time_comparison,
+       width = 6,
+       height = 5,
+       units = "in")
 
 ```
 
-## Estimated statistical power 
+### Test differences in change in median N over time
+
+```{r fig.height=10, fig.width=6}
+
+data_for_model_4 <- data_figure_4 |>
+  mutate(year = as.numeric(str_remove(year, "'")),
+         year_recentered = year - 06,
+         field = fct_relevel(field, "IRAP research", "Social Psychology"))
+
+fit_4 <- lm(formula = median_n ~ year_recentered * field,
+                data = data_for_model_4)
+
+#check_model(fit_4)
+#check_normality(fit_4)
+
+tab_model(fit_4, 
+          string.est = "B",
+          digits = 1,
+          ci.hyphen = ", ")
+
+```
+
+P value of the interaction effect is used to test differences in change in median values over time.
+
+Note that data was re-centered so that the intercept is 2006. 
+
+## Implied Statistical Power 
 
 to Detect an Average Published Effect Size ($\rho$ = .20) over time
 
@@ -584,10 +717,11 @@ data_table_6 |>
 ```{r}
 
 # order field column by same used in Table 1, then plot
-data_table_6_long |>
+p_power_comparison <- data_table_6_long |>
   mutate(field = fct_rev(fct_relevel(field, levels(data_table_1$field)))) |>
   ggplot(aes(as.factor(year), power/100, color = field, group = field)) +
   geom_hline(yintercept = .80, linetype = "dotted") +
+  geom_smooth(method = "lm", alpha = 0.2) +
   geom_line() +
   geom_point() +
   scale_color_viridis_d(option = "viridis", begin = 0.3, end = 0.7) +
@@ -598,47 +732,46 @@ data_table_6_long |>
   scale_y_continuous(labels = scales::label_comma(), 
                      breaks = c(0, .2, .4, .6, .8, 1), 
                      limits = c(0,1)) +
-  labs(colour = "Field")
+  labs(colour = "Field") +
+  theme(legend.position = "bottom",
+        legend.direction = "vertical",
+        legend.title = element_blank())
+
+p_power_comparison
+
+ggsave("plots/p_power_comparison.pdf",
+       plot = p_power_comparison,
+       width = 6,
+       height = 5,
+       units = "in")
 
 ```
 
-## Estimated False-Discovery Rates 
+### Test differences in change in power over time
 
-Assuming No p-Hacking or Questionable Research Practices
+```{r fig.height=10, fig.width=6}
 
-Using various assumptions about the P(null = TRUE)
+data_for_model_5 <- data_table_6_long |>
+  mutate(year = as.numeric(str_remove(year, "'")),
+         year_recentered = year - 06,
+         power = power/100)
 
-### Table
+fit_5 <- lm(formula = power ~ year_recentered * field,
+            data = data_for_model_5)
 
-```{r}
+#check_model(fit_5)
+#check_normality(fit_5)
 
-# select a subset power data from first and last year studied, reshape 
-data_power_subset <- data_table_6 |>
-  select(field, `'11`, `'19`) |>
-  pivot_longer(cols = c(`'11`, `'19`), 
-               names_to = "year",
-               values_to = "power") 
-
-# duplicate data with different values of $P(H_0)$,
-# calculate False Discovery Rate
-data_table_7 <- bind_rows(
-  mutate(data_power_subset, baserate_null = .50),
-  mutate(data_power_subset, baserate_null = .80)
-) |>
-  mutate(power = power/100,
-         fdr = janitor::round_half_up( (baserate_null*.05) / (  (baserate_null*.05) + ((1-baserate_null)*power)  ), 2)) |>
-  select(field, year, baserate_null, fdr) |>
-  pivot_wider(names_from = c(year, baserate_null),
-              values_from = fdr) |>
-  select(field, `'11_0.5`, `'11_0.8`, `'19_0.5`, `'19_0.8`)
-
-# print table
-data_table_7 |>
-  kable(col.names = c("field", "$P(H_0)$ = 0.5", "$P(H_0)$ = 0.8", "$P(H_0)$ = 0.5", "$P(H_0)$ = 0.8"),
-        escape = FALSE) |>
-  kable_classic(full_width = FALSE) %>%
-  add_header_above(c(" " = 1, "2011" = 2, "2019" = 2))
+tab_model(fit_5, 
+          string.est = "B",
+          digits = 2,
+          ci.hyphen = ", ")
 
 ```
+
+P value of the interaction effect is used to test differences in change in implied power over time.
+
+Note that data was re-centered so that the intercept is 2006. 
+
 
 
