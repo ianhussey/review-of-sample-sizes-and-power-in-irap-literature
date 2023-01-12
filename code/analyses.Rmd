@@ -464,11 +464,9 @@ ggsave("plots/p_median_n_over_time.pdf",
 
 ```
 
-## Implied Statistical Power 
+## Implied Statistical Power for $\rho$ = .20
 
-to Detect an Average Published Effect Size ($\rho$ = .20) over time
-
-### Table
+#### Table
 
 ```{r}
 
@@ -497,7 +495,7 @@ data_table_3 |>
 
 ```
 
-### Figure
+#### Figure
 
 ```{r}
 
@@ -527,7 +525,7 @@ ggsave("plots/p_power.pdf",
 
 ```
 
-### Estimate change  in power over time
+#### Estimate change  in power over time
 
 ```{r fig.height=10, fig.width=6}
 
@@ -562,6 +560,8 @@ years_until_power_.80 <- ceiling(necessary_increase_to_reach_power_.80 / 0.009)
 ```
 
 If this rate of increase in median sample sizes is maintained, power of at least .80 (Cohen, 1988) in the median IRAP study would be achieved `r years_until_power_.80` years from now, i.e., by `r 2022 + years_until_power_.80`.
+
+
 
 # IRAP vs Social Psychology studies using study N (after exclusions)
 
@@ -680,9 +680,7 @@ P value of the interaction effect is used to test differences in change in media
 
 Note that data was re-centered so that the intercept is 2006. 
 
-## Implied Statistical Power 
-
-to Detect an Average Published Effect Size ($\rho$ = .20) over time
+## Implied Statistical Power for $\rho$ = .20
 
 ### Table
 

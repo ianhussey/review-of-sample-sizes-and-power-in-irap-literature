@@ -1893,7 +1893,7 @@ border-radius: 0px;
 <h1 class="title toc-ignore">N-Pact Factor assessment for IRAP
 research</h1>
 <h4 class="author">Ian Hussey</h4>
-<h4 class="date">11 January, 2023</h4>
+<h4 class="date">12 January, 2023</h4>
 
 </div>
 
@@ -2971,11 +2971,10 @@ year.</p>
 </div>
 </div>
 </div>
-<div id="implied-statistical-power" class="section level2">
-<h2>Implied Statistical Power</h2>
-<p>to Detect an Average Published Effect Size (<span class="math inline">\(\rho\)</span> = .20) over time</p>
-<div id="table-2" class="section level3">
-<h3>Table</h3>
+<div id="implied-statistical-power-for-rho-.20" class="section level2">
+<h2>Implied Statistical Power for <span class="math inline">\(\rho\)</span> = .20</h2>
+<div id="table-2" class="section level4">
+<h4>Table</h4>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use median n to calculate power</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>data_table_3_long <span class="ot">&lt;-</span> data_table_2_n_long <span class="sc">|&gt;</span></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">#mutate(power = janitor::round_half_up(pwr.r.test(r = .2, sig.level = 0.05, n = median_n_per_cell)$power*100, 0)) |&gt;</span></span>
@@ -3117,8 +3116,8 @@ IRAP research
 </tbody>
 </table>
 </div>
-<div id="figure-2" class="section level3">
-<h3>Figure</h3>
+<div id="figure-2" class="section level4">
+<h4>Figure</h4>
 <div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># order field column by same used in Table 1, then plot</span></span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>p_power <span class="ot">&lt;-</span> data_table_3_long <span class="sc">|&gt;</span></span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">field =</span> <span class="fu">fct_rev</span>(<span class="fu">fct_relevel</span>(field, <span class="fu">levels</span>(data_table_1<span class="sc">$</span>field)))) <span class="sc">|&gt;</span></span>
@@ -3143,8 +3142,8 @@ IRAP research
 <span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">height =</span> <span class="dv">4</span>,</span>
 <span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">units =</span> <span class="st">&quot;in&quot;</span>)</span></code></pre></div>
 </div>
-<div id="estimate-change-in-power-over-time" class="section level3">
-<h3>Estimate change in power over time</h3>
+<div id="estimate-change-in-power-over-time" class="section level4">
+<h4>Estimate change in power over time</h4>
 <div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>data_for_model_3 <span class="ot">&lt;-</span> data_table_3_long <span class="sc">|&gt;</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">year =</span> <span class="fu">as.numeric</span>(<span class="fu">str_remove</span>(year, <span class="st">&quot;&#39;&quot;</span>)),</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">year_recentered =</span> year <span class="sc">-</span> <span class="dv">6</span>,</span>
@@ -3625,9 +3624,8 @@ change in median values over time.</p>
 <p>Note that data was re-centered so that the intercept is 2006.</p>
 </div>
 </div>
-<div id="implied-statistical-power-1" class="section level2">
-<h2>Implied Statistical Power</h2>
-<p>to Detect an Average Published Effect Size (<span class="math inline">\(\rho\)</span> = .20) over time</p>
+<div id="implied-statistical-power-for-rho-.20-1" class="section level2">
+<h2>Implied Statistical Power for <span class="math inline">\(\rho\)</span> = .20</h2>
 <div id="table-4" class="section level3">
 <h3>Table</h3>
 <div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use median n to calculate power</span></span>
