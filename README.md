@@ -3,10 +3,3 @@
 
 
 OSF project: [osf.io/vpwuy](https://osf.io/vpwuy/)
-
-
-
-## TODO
-
-- "Data from all plots are available in table format in the supplementary materials."
-- "A list of these exclusions and their individual reasons is available in the supplementary materials."
