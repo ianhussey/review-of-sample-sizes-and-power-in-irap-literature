@@ -189,7 +189,9 @@ p_distribution <-
   ggplot(data_irap_n_using_nhst, aes(N)) +
   geom_histogram(binwidth = 10) +
   theme_classic() +
-  ylab("Count of studies") +
+  #theme_linedraw() +
+  #theme(panel.grid.minor = element_blank()) +
+  ylab("Number of studies") +
   xlab("Sample size (N)") +
   scale_x_continuous(breaks = seq(from = 0, to = 250, by = 10))
 
@@ -201,6 +203,29 @@ ggsave("plots/p_distribution.pdf",
        height = 4,
        units = "in")
 
+```
+
+IRAP research vs social psych
+
+```{r}
+
+data_medians <- data_combined |>
+  drop_na(N) |>
+  group_by(field) |>
+  summarize(median = median(N))
+
+data_combined |>
+  drop_na(N) |>
+  filter(N <= 1000) |>
+  ggplot(aes(N)) +
+  geom_histogram(binwidth = 10) +
+  geom_vline(data = data_medians, aes(xintercept = median), linetype = "dotted") + 
+  theme_linedraw() +
+  ylab("Number of studies") +
+  xlab("Sample size (N)") +
+  scale_x_continuous(breaks = seq(from = 0, to = 1000, by = 100)) +
+  facet_wrap(~ field, scales = "free_y", ncol = 1)
+  
 ```
 
 ## Split by study design
