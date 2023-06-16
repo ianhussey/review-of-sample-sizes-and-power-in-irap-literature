@@ -797,4 +797,59 @@ P value of the interaction effect is used to test differences in change in impli
 Note that data was re-centered so that the intercept is 2006. 
 
 
+# Recommendations
+
+## Correlation with other variable
+
+```{r}
+
+# sample size calculations
+average_published_effect_size_minimum_recommended_power <- ceiling(pwr.r.test(r = .2, sig.level = 0.05, power = .80, alternative = "two.sided")$n)
+
+average_published_effect_size_high_power <- ceiling(pwr.r.test(r = .2, sig.level = 0.05, power = .95, alternative = "two.sided")$n)
+
+
+# percent of published IRAP studies meeting these sample sizes 
+data_recommendations_comparisons_r.20 <- data_table_1_filtered |>
+  select(key, N)
+
+percent_published_studies_meeting_r.20_minimum_power <- janitor::round_half_up(mean(data_recommendations_comparisons_r.20$N > average_published_effect_size_minimum_recommended_power) * 100, digits = 0)
+
+percent_published_studies_meeting_r.20_high_power <- janitor::round_half_up(mean(data_recommendations_comparisons_r.20$N > average_published_effect_size_high_power) * 100, digits = 0)
+
+```
+
+"average published effect size, minimum recommended power": r = .2, sig.level = 0.05, power = .80, alternative = "two.sided": n = `r average_published_effect_size_minimum_recommended_power`. `r percent_published_studies_meeting_r.20_minimum_power`% of published studies using between or within-between designs meet these sample sizes.
+
+"average published effect size, high power": r = .2, sig.level = 0.05, power = .95, alternative = "two.sided": n = `r average_published_effect_size_high_power`. `r percent_published_studies_meeting_r.20_high_power`% of published studies using between or within-between designs meet these sample sizes.
+
+## Differences in mean IRAP scores between two groups using average transdiagnostic efficacy of ACT (Gloster et al., 2020)
+
+```{r}
+
+# sample size calculations
+average_transdiagnostic_efficacy_of_ACT_between_groups_effect_size_minimum_recommended_power <- ceiling(pwr.t.test(d = .46, sig.level = 0.05, power = .80, alternative = "two.sided")$n)*2 # as it's N per cell
+
+average_transdiagnostic_efficacy_of_ACT_between_groups_effect__high_power <- ceiling(pwr.t.test(d = .46, sig.level = 0.05, power = .95, alternative = "two.sided")$n)*2 # as it's N per cell
+
+
+# percent of published IRAP studies meeting these sample sizes 
+data_recommendations_comparisons_act <- data_table_2_filtered |>
+  mutate(N_per_study_assuming_two_groups = N_per_cell*2) |>
+  select(key, N_per_study_assuming_two_groups)
+
+percent_published_studies_meeting_act_minimum_power <- janitor::round_half_up(mean(data_recommendations_comparisons_act$N_per_study_assuming_two_groups > average_transdiagnostic_efficacy_of_ACT_between_groups_effect_size_minimum_recommended_power) * 100, digits = 0)
+
+percent_published_studies_meeting_act_high_power <- janitor::round_half_up(mean(data_recommendations_comparisons_act$N_per_study_assuming_two_groups > average_transdiagnostic_efficacy_of_ACT_between_groups_effect__high_power) * 100, digits = 0)
+
+```
+
+"average transdiagnostic efficacy of ACT between groups effect size, minimum recommended power": d = .46, sig.level = 0.05, power = .95, alternative = "two.sided": n = 
+`r average_transdiagnostic_efficacy_of_ACT_between_groups_effect_size_minimum_recommended_power`. `r percent_published_studies_meeting_act_minimum_power`% of published studies using between or within-between designs meet these sample sizes.
+
+"average transdiagnostic efficacy of ACT between groups effect size, high power": d = .46, sig.level = 0.05, power = .95, alternative = "two.sided": n = 
+`r average_transdiagnostic_efficacy_of_ACT_between_groups_effect__high_power`. `r percent_published_studies_meeting_act_high_power`% of published studies using between or within-between designs meet these sample sizes.
+
+
+
 

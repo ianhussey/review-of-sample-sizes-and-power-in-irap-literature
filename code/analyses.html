@@ -1893,7 +1893,7 @@ border-radius: 0px;
 <h1 class="title toc-ignore">N-Pact Factor assessment for IRAP
 research</h1>
 <h4 class="author">Ian Hussey</h4>
-<h4 class="date">20 February, 2023</h4>
+<h4 class="date">16 June, 2023</h4>
 
 </div>
 
@@ -3992,6 +3992,59 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 change in implied power over time.</p>
 <p>Note that data was re-centered so that the intercept is 2006.</p>
 </div>
+</div>
+</div>
+<div id="recommendations" class="section level1">
+<h1>Recommendations</h1>
+<div id="correlation-with-other-variable" class="section level2">
+<h2>Correlation with other variable</h2>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># sample size calculations</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>average_published_effect_size_minimum_recommended_power <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(<span class="fu">pwr.r.test</span>(<span class="at">r =</span> .<span class="dv">2</span>, <span class="at">sig.level =</span> <span class="fl">0.05</span>, <span class="at">power =</span> .<span class="dv">80</span>, <span class="at">alternative =</span> <span class="st">&quot;two.sided&quot;</span>)<span class="sc">$</span>n)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>average_published_effect_size_high_power <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(<span class="fu">pwr.r.test</span>(<span class="at">r =</span> .<span class="dv">2</span>, <span class="at">sig.level =</span> <span class="fl">0.05</span>, <span class="at">power =</span> .<span class="dv">95</span>, <span class="at">alternative =</span> <span class="st">&quot;two.sided&quot;</span>)<span class="sc">$</span>n)</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a><span class="co"># percent of published IRAP studies meeting these sample sizes </span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>data_recommendations_comparisons_r<span class="fl">.20</span> <span class="ot">&lt;-</span> data_table_1_filtered <span class="sc">|&gt;</span></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(key, N)</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>percent_published_studies_meeting_r<span class="fl">.20</span>_minimum_power <span class="ot">&lt;-</span> janitor<span class="sc">::</span><span class="fu">round_half_up</span>(<span class="fu">mean</span>(data_recommendations_comparisons_r<span class="fl">.20</span><span class="sc">$</span>N <span class="sc">&gt;</span> average_published_effect_size_minimum_recommended_power) <span class="sc">*</span> <span class="dv">100</span>, <span class="at">digits =</span> <span class="dv">0</span>)</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>percent_published_studies_meeting_r<span class="fl">.20</span>_high_power <span class="ot">&lt;-</span> janitor<span class="sc">::</span><span class="fu">round_half_up</span>(<span class="fu">mean</span>(data_recommendations_comparisons_r<span class="fl">.20</span><span class="sc">$</span>N <span class="sc">&gt;</span> average_published_effect_size_high_power) <span class="sc">*</span> <span class="dv">100</span>, <span class="at">digits =</span> <span class="dv">0</span>)</span></code></pre></div>
+<p>“average published effect size, minimum recommended power”: r = .2,
+sig.level = 0.05, power = .80, alternative = “two.sided”: n = 194. 1% of
+published studies using between or within-between designs meet these
+sample sizes.</p>
+<p>“average published effect size, high power”: r = .2, sig.level =
+0.05, power = .95, alternative = “two.sided”: n = 319. 0% of published
+studies using between or within-between designs meet these sample
+sizes.</p>
+</div>
+<div id="differences-in-mean-irap-scores-between-two-groups-using-average-transdiagnostic-efficacy-of-act-gloster-et-al.-2020" class="section level2">
+<h2>Differences in mean IRAP scores between two groups using average
+transdiagnostic efficacy of ACT (Gloster et al., 2020)</h2>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># sample size calculations</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>average_transdiagnostic_efficacy_of_ACT_between_groups_effect_size_minimum_recommended_power <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(<span class="fu">pwr.t.test</span>(<span class="at">d =</span> .<span class="dv">46</span>, <span class="at">sig.level =</span> <span class="fl">0.05</span>, <span class="at">power =</span> .<span class="dv">80</span>, <span class="at">alternative =</span> <span class="st">&quot;two.sided&quot;</span>)<span class="sc">$</span>n)<span class="sc">*</span><span class="dv">2</span> <span class="co"># as it&#39;s N per cell</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>average_transdiagnostic_efficacy_of_ACT_between_groups_effect__high_power <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(<span class="fu">pwr.t.test</span>(<span class="at">d =</span> .<span class="dv">46</span>, <span class="at">sig.level =</span> <span class="fl">0.05</span>, <span class="at">power =</span> .<span class="dv">95</span>, <span class="at">alternative =</span> <span class="st">&quot;two.sided&quot;</span>)<span class="sc">$</span>n)<span class="sc">*</span><span class="dv">2</span> <span class="co"># as it&#39;s N per cell</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="co"># percent of published IRAP studies meeting these sample sizes </span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>data_recommendations_comparisons_act <span class="ot">&lt;-</span> data_table_2_filtered <span class="sc">|&gt;</span></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">N_per_study_assuming_two_groups =</span> N_per_cell<span class="sc">*</span><span class="dv">2</span>) <span class="sc">|&gt;</span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(key, N_per_study_assuming_two_groups)</span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>percent_published_studies_meeting_act_minimum_power <span class="ot">&lt;-</span> janitor<span class="sc">::</span><span class="fu">round_half_up</span>(<span class="fu">mean</span>(data_recommendations_comparisons_act<span class="sc">$</span>N_per_study_assuming_two_groups <span class="sc">&gt;</span> average_transdiagnostic_efficacy_of_ACT_between_groups_effect_size_minimum_recommended_power) <span class="sc">*</span> <span class="dv">100</span>, <span class="at">digits =</span> <span class="dv">0</span>)</span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>percent_published_studies_meeting_act_high_power <span class="ot">&lt;-</span> janitor<span class="sc">::</span><span class="fu">round_half_up</span>(<span class="fu">mean</span>(data_recommendations_comparisons_act<span class="sc">$</span>N_per_study_assuming_two_groups <span class="sc">&gt;</span> average_transdiagnostic_efficacy_of_ACT_between_groups_effect__high_power) <span class="sc">*</span> <span class="dv">100</span>, <span class="at">digits =</span> <span class="dv">0</span>)</span></code></pre></div>
+<p>“average transdiagnostic efficacy of ACT between groups effect size,
+minimum recommended power”: d = .46, sig.level = 0.05, power = .95,
+alternative = “two.sided”: n = 152. 2% of published studies using
+between or within-between designs meet these sample sizes.</p>
+<p>“average transdiagnostic efficacy of ACT between groups effect size,
+high power”: d = .46, sig.level = 0.05, power = .95, alternative =
+“two.sided”: n = 248. 0% of published studies using between or
+within-between designs meet these sample sizes.</p>
 </div>
 </div>
 
